@@ -1,20 +1,24 @@
 // *********** SELECTORS ***********
 // select div with class of overview to display github data
 const overview = document.querySelector(".overview");
-// select the unorderd list to display public repos
+// the unorderd list to display public repos
 const repoList = document.querySelector(".repo-list");
-// select section where repos appear
+// section where repos appear
 const allReposSection = document.querySelector(".repos");
-// select section containing individual repo data
-const repoData = document.querySelector(".repo-data")
+// section containing individual repo data
+const repoData = document.querySelector(".repo-data");
+// back to repo gallery button
+const backBtn = document.querySelector(".view-repos");
+// filter search input
+const filterInput = document.querySelector(".filter-repos");
 
 // github username
-const userName = 'marykasp'
+const username = 'marykasp'
 
 // *********** FUNCTIONS ***********
 // async function to fetch profile information
 const fetchProfileInfo = async function() {
-  const response = await fetch(`https://api.github.com/users/${userName}`);
+  const response = await fetch(`https://api.github.com/users/${username}`);
   const data = await response.json();
 
   // pass the data to the displayInfo function
@@ -47,7 +51,7 @@ const displayInfo = function (data) {
 
 // async function to fetch public repos
 const fetchRepos = async function() {
-  const response = await fetch(`https://api.github.com/users/${userName}/repos?sort=updated&per_page=100`);
+  const response = await fetch(`https://api.github.com/users/${username}/repos?sort=updated&per_page=100`);
 
   const repos = await response.json();
 
@@ -56,34 +60,26 @@ const fetchRepos = async function() {
 }
 
 const displayRepos = function(repos) {
+  // iterate over the array of repo objects and create a list item for each repo
   repos.forEach(function(repo) {
     // create a list item for each repo
     let listItem = document.createElement("li");
+    // add a class name of repo to each list item
     listItem.classList.add("repo");
     listItem.innerHTML = `<h3>${repo.name}</h3>`
 
     // append list item to unordered list
-    repoList.append(listItem)
+    repoList.append(listItem);
   })
+
+  // display the filter input
+  filterInput.classList.remove("hide")
 }
-
-fetchProfileInfo()
-
-// *********** EVENT LISTENERS ***********
-repoList.addEventListener("click", function(e) {
-  if(e.target.matches("h3")) {
-    // store the innerText of the h3 to a variable
-    let repoName = e.target.innerText;
-
-    // pass repoName to to fetchRepoData to get specific info about the repo clicked on
-    fetchRepoData(repoName)
-  }
-})
 
 // Function to retrieve information about the repo clicked on
 const fetchRepoData = async function(repoName) {
   // get data from specific repo endpoint
-  const fetchInfo = await fetch(`https://api.github.com/repos/${userName}/${repoName}`);
+  const fetchInfo = await fetch(`https://api.github.com/repos/${username}/${repoName}`);
   const repoInfo = await fetchInfo.json();
 
   // fetch data on languages used in repo
@@ -107,6 +103,8 @@ const displayRepoInfo = function(repoInfo, languages) {
   repoData.innerHTML = "";
   repoData.classList.remove("hide");
   allReposSection.classList.add("hide");
+  // display backBtn
+  backBtn.classList.remove("hide")
 
   // new div element and add selected repo's information
   const repoDiv = document.createElement("div");
@@ -120,3 +118,45 @@ const displayRepoInfo = function(repoInfo, languages) {
   // append to repoDiv to repoData section
   repoData.append(repoDiv)
 }
+
+// *********** EVENT LISTENERS ***********
+repoList.addEventListener("click", function(e) {
+  if(e.target.matches("h3")) {
+    // store the innerText of the h3 to a variable
+    let repoName = e.target.innerText;
+
+    // pass repoName to to fetchRepoData to get specific info about the repo clicked on
+    fetchRepoData(repoName)
+  }
+})
+
+// event listerner for backBtn to return back to repo gallery list
+backBtn.addEventListener("click", function() {
+  // display the section with the list of repos
+  allReposSection.classList.remove("hide");
+
+  // hide the individual repo section
+  repoData.classList.add("hide");
+  backBtn.classList.add("hide")
+})
+
+// event listener for search input
+filterInput.addEventListener("input", function(e) {
+  const searchInput = e.target.value;
+  console.log(searchInput);
+  const searchLowercase = searchInput.toLowerCase();
+
+  // returns a NodeList (array) of all the list items
+  const repos = document.querySelectorAll(".repo");
+  // iterate over the repo list and check if the innerText of the repo matches the search value
+  repos.forEach(function(repo) {
+    let text = repo.innerText.toLowerCase();
+    if(text.includes(searchLowercase)) {
+      repo.classList.remove("hide")
+    } else {
+      repo.classList.add("hide")
+    }
+  })
+})
+
+fetchProfileInfo()
